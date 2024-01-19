@@ -1,6 +1,5 @@
 -- Creates a stored procedure AddBonus that adds a new
 -- correction for a student.
--- @author Oluwatobiloba Light
 DROP PROCEDURE IF EXISTS AddBonus;
 
 DELIMITER $$
