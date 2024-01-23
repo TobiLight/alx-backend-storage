@@ -24,6 +24,13 @@ def print_nginx_request_logs(nginx_collection):
     print('{} status check'.format(status_checks_count))
 
 
-if __name__ == '__main__':
+def run():
+    """
+    Provides some stats about Nginx logs stored in MongoDB.
+    """
     client = MongoClient('mongodb://127.0.0.1:27017')
     print_nginx_request_logs(client.logs.nginx)
+
+
+if __name__ == '__main__':
+    run()
