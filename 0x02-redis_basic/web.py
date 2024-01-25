@@ -8,35 +8,39 @@ from functools import wraps
 import requests
 
 
-r = redis.Redis()
+redis_conn = redis.Redis()
 
 
-def url_access_count(method):
-    """decorator for get_page function"""
-    @wraps(method)
-    def wrapper(url):
-        """wrapper function"""
-        key = "cached:" + url
-        cached_value = r.get(key)
-        if cached_value:
-            return cached_value.decode("utf-8")
+def data_cacher(func: Callable) -> Callable:
+    """Caches the output of a fetched data"""
+    @wraps(func)
+    def wrapper(url: str) -> str:
+        """Wrapper function for caching the output"""
+        # Increment access count
+        redis_conn.incr(f'count:{url}')
 
-            # Get new content and update cache
-        key_count = "count:" + url
-        html_content = method(url)
+        # Check if the result is already cached
+        cached_result = redis_conn.get(f'result:{url}')
+        if cached_result:
+            return cached_result.decode('utf-8')
 
-        r.incr(key_count)
-        r.set(key, html_content, ex=10)
-        r.expire(key, 10)
-        return html_content
+        # Call the original function and cache the result
+        result = func(url)
+        redis_conn.set(f'count:{url}', 0)
+        redis_conn.setex(f'result:{url}', 10, result)
+
+        return result
     return wrapper
 
 
-@url_access_count
+@data_cacher
 def get_page(url: str) -> str:
-    """obtain the HTML content of a particular"""
-    results = requests.get(url)
-    return results.text
+    """
+    Returns the content of a URL after caching the request's response,
+    and tracking the request.
+    """
+    response = requests.get(url)
+    return response.text
 
 
 if __name__ == "__main__":
