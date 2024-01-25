@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Module for using redis"""
 
-from typing import Union
+from typing import Callable, Union
 import uuid
 import redis
 
@@ -19,3 +19,23 @@ class Cache:
         key = str(uuid.uuid4())
         self._redis.set(key, data)
         return key
+
+    def get(self, key: str, fn: Callable[[bytes], Union[str, int, float]] =
+            None) -> Union[str, int, float, bytes, None]:
+        """
+        Retrieves data from Redis using the provided key and optionally
+        applies a conversion function.
+        """
+        data = self._redis.get(key)
+        if data is None:
+            return None
+
+        return fn(data) if fn else data
+
+    def get_str(self, key: str) -> Union[str, None]:
+        """Retrieves data from Redis as a string."""
+        return self.get(key, fn=lambda x: x.decode('utf-8'))
+
+    def get_int(self, key: str) -> Union[int, None]:
+        """Retrieves data from Redis as an integer."""
+        return self.get(key, fn=lambda x: int(x))
