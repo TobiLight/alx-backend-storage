@@ -7,7 +7,7 @@ import redis
 from functools import wraps
 import requests
 
-redis_conn = redis.Redis(host='localhost', port=6379, db=0)
+redis_conn = redis.Redis()
 
 
 def cache_with_count(func: Callable) -> Callable:
