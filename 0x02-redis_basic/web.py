@@ -10,10 +10,10 @@ import requests
 redis_conn = redis.Redis(host='localhost', port=6379, db=0)
 
 
-def cache_with_count(func: Callable, expiration=10) -> Callable:
+def cache_with_count(func: Callable) -> Callable:
     """Caches the output of a fetched data"""
     @wraps(func)
-    def wrapper(url: str):
+    def wrapper(url: str) -> str:
         """Wrapper function for caching the output"""
         # Increment access count
         redis_conn.incr(f'count:{url}')
@@ -26,7 +26,7 @@ def cache_with_count(func: Callable, expiration=10) -> Callable:
         # Call the original function and cache the result
         result = func(url)
         redis_conn.set(f'count:{url}', 0)
-        redis_conn.setex(f'result:{url}', expiration, result)
+        redis_conn.setex(f'result:{url}', 10, result)
 
         return result
     return wrapper
