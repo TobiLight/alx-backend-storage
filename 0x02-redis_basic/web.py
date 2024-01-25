@@ -8,8 +8,6 @@ import requests
 
 redis_conn = redis.Redis(host='localhost', port=6379, db=0)
 
-# Decorator to cache function result with count and expiration
-
 
 def cache_with_count(expiration=10):
     def decorator(func):
