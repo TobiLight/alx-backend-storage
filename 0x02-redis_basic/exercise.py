@@ -28,7 +28,8 @@ def count_calls(method: Callable) -> Callable:
 
 def call_history(method: Callable) -> Callable:
     """
-    Decorator that stores the history of inputs and outputs for a function in Redis.
+    Decorator that stores the history of inputs and outputs for a
+    function in Redis.
 
     Args:
         method (Callable): The method to be decorated.
