@@ -34,5 +34,9 @@ def cache_with_count(func: Callable, expiration=10) -> Callable:
 
 @cache_with_count()
 def get_page(url: str) -> str:
+    """
+    Returns the content of a URL after caching the request's response,
+    and tracking the request.
+    """
     response = requests.get(url)
     return response.text
