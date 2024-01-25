@@ -2,6 +2,7 @@
 """
 A web request caching and tracking tool module
 """
+from typing import Callable
 import redis
 from functools import wraps
 import requests
@@ -9,30 +10,26 @@ import requests
 redis_conn = redis.Redis(host='localhost', port=6379, db=0)
 
 
-def cache_with_count(expiration=10):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            url = args[0]  # Assuming the URL is the first argument
-            count_key = f"count:{url}"
-            cache_key = f"cache:{url}"
+def cache_with_count(func: Callable, expiration=10) -> Callable:
+    """Caches the output of a fetched data"""
+    @wraps(func)
+    def wrapper(url: str):
+        """Wrapper function for caching the output"""
+        # Increment access count
+        redis_conn.incr(f'count:{url}')
 
-            # Increment access count
-            redis_conn.incr(count_key)
+        # Check if the result is already cached
+        cached_result = redis_conn.get(f'result:{url}')
+        if cached_result:
+            return cached_result.decode('utf-8')
 
-            # Check if the result is already cached
-            cached_result = redis_conn.get(cache_key)
-            if cached_result:
-                return cached_result.decode('utf-8')
+        # Call the original function and cache the result
+        result = func(url)
+        redis_conn.set(f'count:{url}', 0)
+        redis_conn.setex(f'result:{url}', expiration, result)
 
-            # Call the original function and cache the result
-            result = func(*args, **kwargs)
-            redis_conn.set(f'count:{url}', 0)
-            redis_conn.setex(cache_key, expiration, result)
-
-            return result
-        return wrapper
-    return decorator
+        return result
+    return wrapper
 
 
 @cache_with_count()
